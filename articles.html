@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文集 - 我的博客</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>我的博客</h1>
+        <nav>
+            <a href="index.html">首页</a>
+            <a href="articles.html">文集</a>
+            <a href="about.html">关于</a>
+        </nav>
+    </header>
+    
+    <main>
+        <section class="articles">
+            <h2>文集</h2>
+            
+            <div class="categories">
+                <span class="category">全部</span>
+                <span class="category">读书笔记</span>
+                <span class="category">观影、游戏心得</span>
+                <span class="category">生活随笔</span>
+                <span class="category">佛学笔记</span>
+            </div>
+            
+            <div class="article-list">
+                <!-- 读书笔记分类 -->
+                <div class="category-section">
+                    <h3>读书笔记</h3>
+                    
+                    <article class="article-preview">
+                        <h4>《南北战争三百年：中国4—6世纪的军事与政权》读后感</h4>
+                        <p class="date">2023年6月1日</p>
+                        <p>最近我看了李硕的《南北战争三百年：中国4—6世纪的军事与政权》，这本书是李硕在其博士论文的基础上写成的，主要内容是研究古代骑兵的发展和其对魏晋南北朝的影响...</p>
+                        <a href="article4.html" class="read-more">阅读更多</a>
+                    </article>
+                </div>
+                
+                <!-- 观影、游戏心得分类 -->
+                <div class="category-section">
+                    <h3>观影、游戏心得</h3>
+                    
+                    <article class="article-preview">
+                        <h4>《荒野大镖客：救赎2》玩后感</h4>
+                        <p class="date">2023年6月10日</p>
+                        <p>《荒野大镖客：救赎2》是R星公司出品的经典游戏，它超越了电子游戏的范畴，成为了一件艺术品。通过游戏，我沉浸式地体验了美国近代史，了解了第二次工业革命时期的社会风貌...</p>
+                        <a href="article1.html" class="read-more">阅读更多</a>
+                    </article>
+                </div>
+                
+                <!-- 佛学笔记分类 -->
+                <div class="category-section">
+                    <h3>佛学笔记</h3>
+                    
+                    <article class="article-preview">
+                        <h4>稻秆经修法</h4>
+                        <p class="date">2023年6月5日</p>
+                        <p>修心是整个学佛过程中最重要的环节。通过修心，我们可以有效地解决生活中的烦恼，从而改善自己的内心状态，进而为成佛之路打下坚实的基础。本文详细介绍了十二缘起的修法及其重要性...</p>
+                        <a href="article3.html" class="read-more">阅读更多</a>
+                    </article>
+                </div>
+                
+                <!-- 生活随笔分类 -->
+                <div class="category-section">
+                    <h3>生活随笔</h3>
+                    
+                    <article class="article-preview">
+                        <h4>孟晚舟案背后的种族歧视</h4>
+                        <p class="date">2023年5月25日</p>
+                        <p>2020年5月28日凌晨，加拿大不列颠哥伦比亚省高等法院公布了孟晚舟引渡案的第一个判决结果。本文深入分析了这一案件背后隐藏的种族歧视问题，以及其对国际关系的影响...</p>
+                        <a href="article2.html" class="read-more">阅读更多</a>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 我的博客. 保留所有权利.</p>
+            <div class="social-links">
+                <a href="#">GitHub</a>
+                <a href="#">微博</a>
+                <a href="#">微信</a>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // 简单的分类筛选功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const categories = document.querySelectorAll('.category');
+            const categorySections = document.querySelectorAll('.category-section');
+            
+            categories.forEach(category => {
+                category.addEventListener('click', function() {
+                    // 移除所有类别的活跃状态
+                    categories.forEach(cat => cat.classList.remove('active'));
+                    // 添加当前类别的活跃状态
+                    this.classList.add('active');
+                    
+                    const categoryName = this.textContent;
+                    
+                    // 筛选文章
+                    categorySections.forEach(section => {
+                        if (categoryName === '全部' || section.querySelector('h3').textContent === categoryName) {
+                            section.style.display = 'block';
+                        } else {
+                            section.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
