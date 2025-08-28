@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作品集 - PDF浏览</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 作品集特有样式 */
+        .portfolio-content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .portfolio-content h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .document-list {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .document-list h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .document-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .document-item:hover {
+            color: #3498db;
+            transform: translateX(5px);
+        }
+        
+        .document-item:last-child {
+            border-bottom: none;
+        }
+        
+        .document-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .document-title {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .document-meta {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .pdf-viewer {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .pdf-viewer h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .pdf-container {
+            width: 100%;
+            height: 90vh;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .no-pdf-selected {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+        
+        /* 选中状态 */
+        .document-item.selected {
+            color: #3498db;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .portfolio-content,
+            .document-list,
+            .pdf-viewer {
+                padding: 20px;
+            }
+            
+            .pdf-container {
+                height: 70vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Padmamitra的博客</h1>
+    </header>
+    
+    <nav>
+        <a href="index.html">首页</a>
+        <a href="articles.html">文集</a>
+        <a href="portfolio.html">作品集</a>
+        <a href="about.html">关于</a>
+    </nav>
+    
+    <main>
+        <section class="portfolio-content">
+            <h2>我的作品集</h2>
+            <p>这里展示了我的各项作品，点击列表中的文档名称即可查看详情。</p>
+        </section>
+        
+        <section class="document-list">
+            <h3>文档列表</h3>
+            
+            <div class="document-item" data-pdf="portfolio/1.pdf">
+                <div class="document-info">
+                    <span class="document-title">英文学术论文</span>
+                    <span class="document-meta">2025-08-27</span>
+                </div>
+            </div>
+            
+            <div class="document-item" data-pdf="portfolio/2.pdf">
+                <div class="document-info">
+                    <span class="document-title">英文医学期刊</span>
+                    <span class="document-meta">2025-08-27</span>
+                </div>
+            </div>
+            
+            <div class="document-item" data-pdf="portfolio/3.pdf">
+                <div class="document-info">
+                    <span class="document-title">招生画册</span>
+                    <span class="document-meta">2025-08-27</span>
+                </div>
+            </div>
+            
+            <div class="document-item" data-pdf="portfolio/4.pdf">
+                <div class="document-info">
+                    <span class="document-title">建筑作品集</span>
+                    <span class="document-meta">2025-08-27</span>
+                </div>
+            </div>
+            
+            <div class="document-item" data-pdf="portfolio/5.pdf">
+                <div class="document-info">
+                    <span class="document-title">明星应援画册</span>
+                    <span class="document-meta">2025-08-27</span>
+                </div>
+            </div>
+            
+            <div class="document-item" data-pdf="portfolio/6.pdf">
+                <div class="document-info">
+                    <span class="document-title">八大菩萨传</span>
+                    <span class="document-meta">2025-08-27</span>
+                </div>
+            </div>
+            
+            <div class="document-item" data-pdf="portfolio/7.pdf">
+                <div class="document-info">
+                    <span class="document-title">中学课程教案</span>
+                    <span class="document-meta">2025-08-27</span>
+                </div>
+            </div>
+        </section>
+        
+        <section class="pdf-viewer">
+            <h3>文档预览</h3>
+            <div class="pdf-container">
+                <div id="pdf-content" class="no-pdf-selected">
+                    请从列表中选择一个文档进行浏览
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 我的博客. 保留所有权利.</p>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const documentItems = document.querySelectorAll('.document-item');
+            const pdfContent = document.getElementById('pdf-content');
+            
+            // 为每个文档项添加点击事件
+            documentItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // 移除所有文档项的选中状态
+                    documentItems.forEach(i => i.classList.remove('selected'));
+                    // 添加当前文档项的选中状态
+                    this.classList.add('selected');
+                    
+                    // 获取PDF文件名
+                    const pdfFile = this.getAttribute('data-pdf');
+                    // 更新PDF内容
+                    updatePdfViewer(pdfFile);
+                });
+            });
+            
+            // 更新PDF查看器
+            function updatePdfViewer(pdfFile) {
+                // 显示加载中的消息
+                pdfContent.innerHTML = `
+                    <div class="no-pdf-selected">
+                        <div style="text-align: center;">
+                            <p>正在加载文档，请稍候...</p>
+                            <p style="margin-top: 10px; font-size: 0.9rem; color: #7f8c8d;">文档路径: ${pdfFile}</p>
+                            <button onclick="window.open('${pdfFile}', '_blank')" style="margin-top: 10px; padding: 5px 15px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">直接打开PDF</button>
+                        </div>
+                    </div>
+                `;
+                
+                // 使用setTimeout确保加载消息先显示
+                setTimeout(() => {
+                    // 增强PDF预览体验，优化缩放和交互问题
+                    pdfContent.innerHTML = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="padding: 10px; background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                                <p style="margin: 0; font-size: 0.9rem; color: #495057;">PDF预览</p>
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <!-- 使用object标签提供最佳的PDF交互体验 -->
+                                <object 
+                                    data="${pdfFile}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=Fit" 
+                                    type="application/pdf" 
+                                    style="width: 100%; height: 100%; border: none;">
+                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center;">
+                                        <div style="text-align: center;">
+                                            <p style="font-size: 1.2rem; color: #333;">无法预览PDF文件</p>
+                                            <p style="margin-top: 10px; color: #666;">请尝试使用下方按钮直接打开PDF文件</p>
+                                            <button onclick="window.open('${pdfFile}', '_blank')" style="margin-top: 20px; padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">直接打开PDF</button>
+                                        </div>
+                                    </div>
+                                </object>
+                            </div>
+                            <div style="padding: 10px; background-color: #f8f9fa; border-top: 1px solid #e9ecef; text-align: center;">
+                                <button onclick="window.open('${pdfFile}', '_blank')" style="padding: 8px 16px; background-color: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer;">下载或在新窗口打开PDF</button>
+                            </div>
+                        </div>
+                    `;
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
