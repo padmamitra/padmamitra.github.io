@@ -161,6 +161,29 @@ main {
     background: #2980b9;
 }
 
+.category.active {
+    background: #2980b9;
+    font-weight: bold;
+}
+
+/* 隐藏多余文章的类 */
+.article-hidden {
+    display: none;
+}
+
+/* 显示全部按钮 */
+.show-all-btn {
+    color: #3498db;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 0;
+}
+
 /* 关于页面样式 */
 .about-content {
     background: white;
@@ -171,6 +194,7 @@ main {
 
 .about-content h2 {
     font-size: 1.8rem;
+    margin-top: 30px;
     margin-bottom: 20px;
     color: #2c3e50;
 }
