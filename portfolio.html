@@ -6,123 +6,92 @@
     <title>作品集 - PDF浏览</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* 作品集特有样式 */
-        .portfolio-content {
+        /* 1. 核心：让预览区占满屏幕高度，去掉冗余空间 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box; /* 确保padding不挤压内容 */
+        }
+
+        /* 顶部介绍区 */
+        .portfolio-top {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 2. 桌面端两栏布局：列表左（固定宽度），预览右（占满剩余空间） */
+        .portfolio-box {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto 30px;
+            padding: 0 20px;
+            min-height: 85vh; /* 预览区最小高度=屏幕85%，足够大 */
+        }
+
+        /* 文档列表：固定宽度，不挤压预览区 */
+        .doc-list {
+            flex: 0 0 300px; /* 列表固定300px宽 */
             background: white;
-            padding: 40px;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow-y: auto; /* 内容多了可滚动 */
+            max-height: 85vh; /* 和预览区高度对齐 */
         }
-        
-        .portfolio-content h2 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-        
-        .document-list {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 30px;
-        }
-        
-        .document-list h3 {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: #2c3e50;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .document-item {
-            padding: 15px 0;
+
+        .doc-item {
+            padding: 12px 0;
             border-bottom: 1px solid #eee;
             cursor: pointer;
-            transition: all 0.3s;
         }
-        
-        .document-item:hover {
+
+        .doc-item:hover, .doc-item.active {
             color: #3498db;
-            transform: translateX(5px);
-        }
-        
-        .document-item:last-child {
-            border-bottom: none;
-        }
-        
-        .document-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .document-title {
             font-weight: 500;
-            color: #2c3e50;
         }
-        
-        .document-meta {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-        }
-        
-        .pdf-viewer {
+
+        /* 3. PDF预览区：占满剩余空间，预览框填充满 */
+        .pdf-box {
+            flex: 1; /* 占满剩余宽度 */
             background: white;
-            padding: 30px;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .pdf-viewer h3 {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: #2c3e50;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .pdf-container {
-            width: 100%;
-            height: 90vh;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .no-pdf-selected {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column; /* 让预览框占满高度 */
+        }
+
+        /* PDF预览核心：用iframe，填充满父容器 */
+        #pdf-view {
+            flex: 1; /* 占满预览区剩余高度 */
             width: 100%;
-            height: 100%;
-            color: #7f8c8d;
-            font-size: 1.2rem;
+            border: 1px solid #eee;
+            border-radius: 4px;
         }
-        
-        /* 选中状态 */
-        .document-item.selected {
-            color: #3498db;
-            font-weight: 500;
-        }
-        
-        @media (max-width: 768px) {
-            .portfolio-content,
-            .document-list,
-            .pdf-viewer {
-                padding: 20px;
+
+        /* 移动端适配：两栏变上下，避免挤在一起 */
+        @media (max-width: 900px) {
+            .portfolio-box {
+                flex-direction: column; /* 上下排列 */
+                min-height: auto; /* 取消固定高度 */
             }
-            
-            .pdf-container {
-                height: 70vh;
+
+            .doc-list {
+                flex: none;
+                width: 100%;
+                max-height: 200px; /* 列表高度限制，不遮挡预览 */
+            }
+
+            .pdf-box {
+                min-height: 60vh; /* 移动端预览区高度 */
             }
         }
     </style>
 </head>
 <body>
+    <!-- 头部导航（保持原样） -->
     <header>
         <h1>Padmamitra的博客</h1>
     </header>
@@ -135,65 +104,34 @@
     </nav>
     
     <main>
-        <section class="portfolio-content">
+        <!-- 顶部介绍 -->
+        <div class="portfolio-top">
             <h2>我的作品集</h2>
-            <p>这里展示了我的各项作品，点击列表中的文档名称即可查看详情。</p>
-        </section>
-        
-        <section class="document-list">
-            <h3>文档列表</h3>
-            
-            <div class="document-item" data-pdf="1.pdf">
-                <div class="document-info">
-                    <span class="document-title">英文学术论文</span>
-                    <span class="document-meta">2025-08-27</span>
+            <p>点击左侧文档，右侧预览PDF（手机上点击后在下方预览）</p>
+        </div>
+
+        <!-- 核心：两栏布局（列表+预览） -->
+        <div class="portfolio-box">
+            <!-- 文档列表 -->
+            <div class="doc-list">
+                <h3>文档列表</h3>
+                <div class="doc-item" data-pdf="1.pdf">英文学术论文</div>
+                <div class="doc-item" data-pdf="2.pdf">英文医学期刊</div>
+                <div class="doc-item" data-pdf="3.pdf">招生画册</div>
+                <div class="doc-item" data-pdf="5.pdf">明星应援画册</div>
+                <div class="doc-item" data-pdf="6.pdf">八大菩萨传</div>
+                <div class="doc-item" data-pdf="7.pdf">中学课程教案</div>
+            </div>
+
+            <!-- PDF预览区：用iframe实现 -->
+            <div class="pdf-box">
+                <h3>文档预览</h3>
+                <!-- 初始显示提示，点击列表后替换为PDF -->
+                <div id="pdf-view" style="display: flex; justify-content: center; align-items: center; color: #666;">
+                    请从左侧选择一个文档
                 </div>
             </div>
-            
-            <div class="document-item" data-pdf="2.pdf">
-                <div class="document-info">
-                    <span class="document-title">英文医学期刊</span>
-                    <span class="document-meta">2025-08-27</span>
-                </div>
-            </div>
-            
-            <div class="document-item" data-pdf="3.pdf">
-                <div class="document-info">
-                    <span class="document-title">招生画册</span>
-                    <span class="document-meta">2025-08-27</span>
-                </div>
-            </div>
-            
-            <div class="document-item" data-pdf="5.pdf">
-                <div class="document-info">
-                    <span class="document-title">明星应援画册</span>
-                    <span class="document-meta">2025-08-27</span>
-                </div>
-            </div>
-            
-            <div class="document-item" data-pdf="6.pdf">
-                <div class="document-info">
-                    <span class="document-title">八大菩萨传</span>
-                    <span class="document-meta">2025-08-27</span>
-                </div>
-            </div>
-            
-            <div class="document-item" data-pdf="7.pdf">
-                <div class="document-info">
-                    <span class="document-title">中学课程教案</span>
-                    <span class="document-meta">2025-08-27</span>
-                </div>
-            </div>
-        </section>
-        
-        <section class="pdf-viewer">
-            <h3>文档预览</h3>
-            <div class="pdf-container">
-                <div id="pdf-content" class="no-pdf-selected">
-                    请从列表中选择一个文档进行浏览
-                </div>
-            </div>
-        </section>
+        </div>
     </main>
     
     <footer>
@@ -201,70 +139,47 @@
             <p>&copy; 2025 我的博客. 保留所有权利.</p>
         </div>
     </footer>
-    
+
+    <!-- 简单JS：点击切换PDF -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const documentItems = document.querySelectorAll('.document-item');
-            const pdfContent = document.getElementById('pdf-content');
-            
-            // 为每个文档项添加点击事件
-            documentItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    // 移除所有文档项的选中状态
-                    documentItems.forEach(i => i.classList.remove('selected'));
-                    // 添加当前文档项的选中状态
-                    this.classList.add('selected');
-                    
-                    // 获取PDF文件名
-                    const pdfFile = this.getAttribute('data-pdf');
-                    // 更新PDF内容
-                    updatePdfViewer(pdfFile);
-                });
-            });
-            
-            // 更新PDF查看器
-            function updatePdfViewer(pdfFile) {
-                // 显示加载中的消息
-                pdfContent.innerHTML = `
-                    <div class="no-pdf-selected">
-                        <div style="text-align: center;">
-                            <p>正在加载文档，请稍候...</p>
-                            <p style="margin-top: 10px; font-size: 0.9rem; color: #7f8c8d;">文档路径: ${pdfFile}</p>
-                            <button onclick="window.open('${pdfFile}', '_blank')" style="margin-top: 10px; padding: 5px 15px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">直接打开PDF</button>
-                        </div>
-                    </div>
-                `;
-                
-                // 使用setTimeout确保加载消息先显示
-                setTimeout(() => {
-                    // 增强PDF预览体验，优化缩放和交互问题
-                    pdfContent.innerHTML = `
-                        <div style="height: 100%; display: flex; flex-direction: column;">
-                            <div style="padding: 10px; background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
-                                <p style="margin: 0; font-size: 0.9rem; color: #495057;">PDF预览</p>
-                            </div>
-                            <div style="flex-grow: 1;">
-                                <!-- 使用object标签提供最佳的PDF交互体验 -->
-                                <object 
-                                    data="${pdfFile}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=Fit" 
-                                    type="application/pdf" 
-                                    style="width: 100%; height: 100%; border: none;">
-                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center;">
-                                        <div style="text-align: center;">
-                                            <p style="font-size: 1.2rem; color: #333;">无法预览PDF文件</p>
-                                            <p style="margin-top: 10px; color: #666;">请尝试使用下方按钮直接打开PDF文件</p>
-                                            <button onclick="window.open('${pdfFile}', '_blank')" style="margin-top: 20px; padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">直接打开PDF</button>
-                                        </div>
-                                    </div>
-                                </object>
-                            </div>
-                            <div style="padding: 10px; background-color: #f8f9fa; border-top: 1px solid #e9ecef; text-align: center;">
-                                <button onclick="window.open('${pdfFile}', '_blank')" style="padding: 8px 16px; background-color: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer;">下载或在新窗口打开PDF</button>
-                            </div>
+        // 给所有文档项加点击事件
+        document.querySelectorAll('.doc-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // 1. 切换选中状态
+                document.querySelectorAll('.doc-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                // 2. 获取PDF路径
+                const pdfPath = this.getAttribute('data-pdf');
+
+                // 3. 替换预览区为iframe（显示PDF）
+                const pdfView = document.getElementById('pdf-view');
+                pdfView.innerHTML = ''; // 清空提示
+                pdfView.style.display = 'block'; // 显示iframe
+
+                // 创建iframe，填充满容器
+                const iframe = document.createElement('iframe');
+                iframe.src = pdfPath; // PDF路径
+                iframe.width = '100%';
+                iframe.height = '100%';
+                iframe.frameBorder = '0'; // 去掉边框
+                iframe.scrolling = 'auto'; // 支持滚动
+
+                // 加载失败时显示提示
+                iframe.onerror = function() {
+                    pdfView.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <p>PDF加载失败</p>
+                            <button onclick="window.open('${pdfPath}', '_blank')" style="margin-top: 10px; padding: 8px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                直接打开PDF
+                            </button>
                         </div>
                     `;
-                }, 500);
-            }
+                };
+
+                // 把iframe加到预览区
+                pdfView.appendChild(iframe);
+            });
         });
     </script>
 </body>
