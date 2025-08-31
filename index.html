@@ -45,4 +45,21 @@
         </div>
     </footer>
 </body>
+
+<script>
+// 隐藏的访问计数逻辑（不在页面显示，仅在控制台输出）
+document.addEventListener('DOMContentLoaded', function() {
+    // 从本地存储获取已有计数（首次访问则为0）
+    let visitCount = localStorage.getItem('visitCount');
+    visitCount = visitCount ? parseInt(visitCount, 10) : 0;
+    
+    // 计数+1并保存
+    visitCount++;
+    localStorage.setItem('visitCount', visitCount);
+    
+    // 仅在浏览器控制台输出计数（用户自己可见）
+    console.log('当前网站访问次数：', visitCount);
+});
+</script>
+
 </html>
