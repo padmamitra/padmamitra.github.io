@@ -3,95 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>作品集 - PDF浏览</title>
+    <title>作品集 - Padmamitra</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
-        /* 1. 核心：让预览区占满屏幕高度，去掉冗余空间 */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f8fafc;
+            --accent: #ec4899;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+            --shadow-hover: 0 20px 40px -15px rgba(0,0,0,0.15);
+        }
+
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box; /* 确保padding不挤压内容 */
+            box-sizing: border-box;
         }
 
-        /* 顶部介绍区 */
-        .portfolio-top {
-            padding: 20px;
-            max-width: 1400px;
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%);
+            min-height: 100vh;
+        }
+
+        .portfolio-container {
+            max-width: 1600px;
             margin: 0 auto;
+            padding: 30px 20px;
         }
 
-        /* 2. 桌面端两栏布局：列表左（固定宽度），预览右（占满剩余空间） */
-        .portfolio-box {
+        .portfolio-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .portfolio-header h2 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .portfolio-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .portfolio-content {
             display: flex;
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto 30px;
-            padding: 0 20px;
-            min-height: 85vh; /* 预览区最小高度=屏幕85%，足够大 */
+            gap: 25px;
+            min-height: 70vh;
         }
 
-        /* 文档列表：固定宽度，不挤压预览区 */
-        .doc-list {
-            flex: 0 0 300px; /* 列表固定300px宽 */
+        .doc-sidebar {
+            width: 320px;
+            flex-shrink: 0;
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            overflow-y: auto; /* 内容多了可滚动 */
-            max-height: 85vh; /* 和预览区高度对齐 */
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .doc-sidebar h3 {
+            color: var(--text);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doc-sidebar h3::before {
+            content: '📚';
+            font-size: 1.5rem;
+        }
+
+        .doc-list {
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .doc-item {
-            padding: 12px 0;
-            border-bottom: 1px solid #eee;
+            padding: 18px 20px;
+            background: var(--secondary);
+            border-radius: 12px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
         }
 
-        .doc-item:hover, .doc-item.active {
-            color: #3498db;
-            font-weight: 500;
+        .doc-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
         }
 
-        /* 3. PDF预览区：占满剩余空间，预览框填充满 */
-        .pdf-box {
-            flex: 1; /* 占满剩余宽度 */
+        .doc-item:hover {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.1);
+        }
+
+        .doc-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .doc-item.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+            border-color: var(--primary);
+        }
+
+        .doc-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .doc-item-title {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+
+        .doc-item-meta {
+            font-size: 0.85rem;
+            color: var(--text-light);
             display: flex;
-            flex-direction: column; /* 让预览框占满高度 */
+            align-items: center;
+            gap: 8px;
         }
 
-        /* PDF预览核心：用iframe，填充满父容器 */
-        #pdf-view {
-            flex: 1; /* 占满预览区剩余高度 */
-            width: 100%;
-            border: 1px solid #eee;
-            border-radius: 4px;
+        .pdf-viewer-container {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        /* 移动端适配：两栏变上下，避免挤在一起 */
-        @media (max-width: 900px) {
-            .portfolio-box {
-                flex-direction: column; /* 上下排列 */
-                min-height: auto; /* 取消固定高度 */
+        .viewer-header {
+            padding: 20px 30px;
+            background: linear-gradient(135deg, var(--secondary) 0%, #f1f5f9 100%);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .viewer-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .viewer-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .control-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .control-btn.secondary {
+            background: white;
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .control-btn.secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .viewer-main {
+            flex: 1;
+            overflow: auto;
+            background: #f8fafc;
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        #pdf-canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .pdf-page {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            background: white;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-light);
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .empty-state-subtext {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 1024px) {
+            .portfolio-content {
+                flex-direction: column;
             }
 
-            .doc-list {
-                flex: none;
+            .doc-sidebar {
                 width: 100%;
-                max-height: 200px; /* 列表高度限制，不遮挡预览 */
+                max-height: 280px;
             }
 
-            .pdf-box {
-                min-height: 60vh; /* 移动端预览区高度 */
+            .pdf-viewer-container {
+                min-height: 500px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- 头部导航（保持原样） -->
     <header>
         <h1>Padmamitra的博客</h1>
     </header>
@@ -104,31 +294,59 @@
     </nav>
     
     <main>
-        <!-- 顶部介绍 -->
-        <div class="portfolio-top">
-            <h2>我的作品集</h2>
-            <p>点击左侧文档，右侧预览PDF（手机上点击后在下方预览）</p>
-        </div>
-
-        <!-- 核心：两栏布局（列表+预览） -->
-        <div class="portfolio-box">
-            <!-- 文档列表 -->
-            <div class="doc-list">
-                <h3>文档列表</h3>
-                <div class="doc-item" data-pdf="1.pdf">英文学术论文</div>
-                <div class="doc-item" data-pdf="2.pdf">英文医学期刊</div>
-                <div class="doc-item" data-pdf="3.pdf">招生画册</div>
-                <div class="doc-item" data-pdf="5.pdf">明星应援画册</div>
-                <div class="doc-item" data-pdf="6.pdf">八大菩萨传</div>
-                <div class="doc-item" data-pdf="7.pdf">中学课程教案</div>
+        <div class="portfolio-container">
+            <div class="portfolio-header">
+                <h2>✨ 我的作品集</h2>
+                <p>选择左侧文档，即可在右侧预览</p>
             </div>
 
-            <!-- PDF预览区：用iframe实现 -->
-            <div class="pdf-box">
-                <h3>文档预览</h3>
-                <!-- 初始显示提示，点击列表后替换为PDF -->
-                <div id="pdf-view" style="display: flex; justify-content: center; align-items: center; color: #666;">
-                    请从左侧选择一个文档
+            <div class="portfolio-content">
+                <div class="doc-sidebar">
+                    <h3>文档列表</h3>
+                    <div class="doc-list">
+                        <div class="doc-item" data-pdf="1.pdf">
+                            <div class="doc-item-title">英文学术论文</div>
+                            <div class="doc-item-meta">📄 PDF 文档</div>
+                        </div>
+                        <div class="doc-item" data-pdf="2.pdf">
+                            <div class="doc-item-title">英文医学期刊</div>
+                            <div class="doc-item-meta">📄 PDF 文档</div>
+                        </div>
+                        <div class="doc-item" data-pdf="3.pdf">
+                            <div class="doc-item-title">招生画册</div>
+                            <div class="doc-item-meta">📄 PDF 文档</div>
+                        </div>
+                        <div class="doc-item" data-pdf="5.pdf">
+                            <div class="doc-item-title">明星应援画册</div>
+                            <div class="doc-item-meta">📄 PDF 文档</div>
+                        </div>
+                        <div class="doc-item" data-pdf="6.pdf">
+                            <div class="doc-item-title">八大菩萨传</div>
+                            <div class="doc-item-meta">📄 PDF 文档</div>
+                        </div>
+                        <div class="doc-item" data-pdf="7.pdf">
+                            <div class="doc-item-title">中学课程教案</div>
+                            <div class="doc-item-meta">📄 PDF 文档</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pdf-viewer-container">
+                    <div class="viewer-header">
+                        <div class="viewer-title" id="current-doc-title">请选择文档</div>
+                        <div class="viewer-controls">
+                            <button class="control-btn secondary" id="download-btn" style="display: none;">
+                                📥 下载
+                            </button>
+                        </div>
+                    </div>
+                    <div class="viewer-main" id="viewer-main">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📁</div>
+                            <div class="empty-state-text">从左侧选择一个文档</div>
+                            <div class="empty-state-subtext">点击文档卡片即可开始预览</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -140,47 +358,132 @@
         </div>
     </footer>
 
-    <!-- 简单JS：点击切换PDF -->
     <script>
-        // 给所有文档项加点击事件
-        document.querySelectorAll('.doc-item').forEach(item => {
-            item.addEventListener('click', function() {
-                // 1. 切换选中状态
-                document.querySelectorAll('.doc-item').forEach(i => i.classList.remove('active'));
+        // 设置 PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let currentPdf = null;
+        let currentDocName = '';
+
+        const docItems = document.querySelectorAll('.doc-item');
+        const viewerMain = document.getElementById('viewer-main');
+        const currentDocTitle = document.getElementById('current-doc-title');
+        const downloadBtn = document.getElementById('download-btn');
+
+        docItems.forEach(item => {
+            item.addEventListener('click', async function() {
+                docItems.forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
 
-                // 2. 获取PDF路径
                 const pdfPath = this.getAttribute('data-pdf');
+                const docTitle = this.querySelector('.doc-item-title').textContent;
+                currentDocName = pdfPath;
 
-                // 3. 替换预览区为iframe（显示PDF）
-                const pdfView = document.getElementById('pdf-view');
-                pdfView.innerHTML = ''; // 清空提示
-                pdfView.style.display = 'block'; // 显示iframe
+                currentDocTitle.textContent = docTitle;
+                downloadBtn.style.display = 'flex';
 
-                // 创建iframe，填充满容器
-                const iframe = document.createElement('iframe');
-                iframe.src = pdfPath; // PDF路径
-                iframe.width = '100%';
-                iframe.height = '100%';
-                iframe.frameBorder = '0'; // 去掉边框
-                iframe.scrolling = 'auto'; // 支持滚动
-
-                // 加载失败时显示提示
-                iframe.onerror = function() {
-                    pdfView.innerHTML = `
-                        <div style="text-align: center; padding: 20px;">
-                            <p>PDF加载失败</p>
-                            <button onclick="window.open('${pdfPath}', '_blank')" style="margin-top: 10px; padding: 8px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                直接打开PDF
-                            </button>
-                        </div>
-                    `;
-                };
-
-                // 把iframe加到预览区
-                pdfView.appendChild(iframe);
+                loadPdfWithFallback(pdfPath, docTitle);
             });
         });
+
+        downloadBtn.addEventListener('click', function() {
+            if (currentDocName) {
+                const link = document.createElement('a');
+                link.href = currentDocName;
+                link.download = currentDocName;
+                link.click();
+            }
+        });
+
+        async function loadPdfWithFallback(url, title) {
+            try {
+                viewerMain.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
+                
+                await loadPdfUsingIframe(url, title);
+            } catch (error) {
+                console.error('PDF加载失败:', error);
+                showFallbackViewer(url, title);
+            }
+        }
+
+        async function loadPdfUsingIframe(url, title) {
+            const container = document.createElement('div');
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.alignItems = 'center';
+
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.style.minHeight = '700px';
+            
+            container.appendChild(iframe);
+            
+            viewerMain.innerHTML = '';
+            viewerMain.style.padding = '0';
+            viewerMain.appendChild(container);
+        }
+
+        function showFallbackViewer(url, title) {
+            viewerMain.style.padding = '30px';
+            viewerMain.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📄</div>
+                    <div class="empty-state-text">文档已准备好</div>
+                    <div class="empty-state-subtext" style="margin-bottom: 20px;">${title}</div>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                        <a href="${url}" target="_blank" class="control-btn primary" style="text-decoration: none;">
+                            🔗 在新标签页中打开
+                        </a>
+                        <a href="${url}" download="${url}" class="control-btn secondary" style="text-decoration: none;">
+                            📥 下载文档
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadPdf(url) {
+            try {
+                viewerMain.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
+                
+                const pdf = await pdfjsLib.getDocument(url).promise;
+                currentPdf = pdf;
+
+                const container = document.createElement('div');
+                container.id = 'pdf-canvas-container';
+
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const scale = 1.5;
+                    const viewport = page.getViewport({ scale });
+
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'pdf-page';
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+
+                    await page.render(renderContext).promise;
+                    container.appendChild(canvas);
+                }
+
+                viewerMain.innerHTML = '';
+                viewerMain.appendChild(container);
+            } catch (error) {
+                console.error('PDF加载失败:', error);
+                throw error;
+            }
+        }
     </script>
 </body>
 </html>

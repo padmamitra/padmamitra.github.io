@@ -651,13 +651,20 @@
 
                     
                     <article class="article-preview">
+                        <h4>2026年马年春晚有感</h4>
+                        <p class="date">2026年2月17日</p>
+                        <p>今年春晚我是断断续续看完的。其中武术节目《武 BOT》里的机器人表演让我印象深刻，相比去年春晚它们表演转手帕，这一年的技术进步非常明显。这种进步让人不由得联想，或许用不了多久，就能看到手持武器的人形机器人出现在边境线上。不知道三哥看见这些机器人会否会想到天网？</p>
+                        <a href="article87.html" class="read-more">阅读更多</a>
+                    </article>
+                    
+                    <article class="article-preview">
                         <h4>九三胜利日阅兵后的思考</h4>
                         <p class="date">2025年09月05日</p>
                         <p>9月3日，纪念反法西斯战争胜利八十周年阅兵成功举办，我的心情也从最初的激动与自豪逐渐归于平静。此次阅兵中诸多新装备的展示，让资深军迷都感到自己所知有限..."</p>
                         <a href="article73.html" class="read-more">阅读更多</a>
                     </article>
                     
-                    <article class="article-preview">
+                    <article class="article-preview article-hidden">
                         <h4>我的集卡故事</h4>
                         <p class="date">2020年10月1日</p>
                         <p>每个人都会有自己的爱好，收集一些东西。这些东西可能是他一辈子很有意义的一段时光，记录了一段难忘的岁月。我从小学五、六年级开始收集水浒卡，现在每次打开自己的卡册，总有一种爷青回的感觉。“这就是哥的青春啊！”</p>
@@ -686,49 +693,77 @@
             const categories = document.querySelectorAll('.category');
             const categorySections = document.querySelectorAll('.category-section');
             const showAllButtons = document.querySelectorAll('.show-all-btn');
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+            const clearButton = document.getElementById('clear-button');
+            const articles = document.querySelectorAll('.article-preview');
             
-            // 设置默认状态：'全部'按钮为激活状态
+            let currentActiveCategory = '全部';
+            
+            // 初始化：设置默认状态，'全部'按钮为激活状态
             categories[0].classList.add('active');
+            
+            // 重置为默认视图（显示所有分类，每个分类只显示前3篇）
+            function resetToDefaultView() {
+                currentActiveCategory = '全部';
+                categories.forEach(cat => cat.classList.remove('active'));
+                categories[0].classList.add('active');
+                
+                categorySections.forEach(section => {
+                    section.style.display = 'block';
+                    const sectionArticles = section.querySelectorAll('.article-preview');
+                    const showAllBtn = section.querySelector('.show-all-btn');
+                    
+                    sectionArticles.forEach((article, index) => {
+                        article.style.display = '';
+                        if (index >= 3) {
+                            article.classList.add('article-hidden');
+                        } else {
+                            article.classList.remove('article-hidden');
+                        }
+                    });
+                    
+                    const hasHiddenArticles = section.querySelectorAll('.article-hidden').length > 0;
+                    showAllBtn.style.display = hasHiddenArticles ? 'inline-block' : 'none';
+                });
+            }
             
             // 分类筛选功能
             categories.forEach(category => {
                 category.addEventListener('click', function() {
-                    // 移除所有类别的活跃状态
                     categories.forEach(cat => cat.classList.remove('active'));
-                    // 添加当前类别的活跃状态
                     this.classList.add('active');
+                    currentActiveCategory = this.textContent;
                     
                     const categoryName = this.textContent;
                     
-                    // 筛选文章
                     categorySections.forEach(section => {
                         const sectionTitle = section.querySelector('h3').textContent;
                         
                         if (categoryName === '全部') {
-                            // 显示所有分类，但只显示每个分类的前3篇文章
                             section.style.display = 'block';
-                            const articles = section.querySelectorAll('.article-preview');
-                            articles.forEach((article, index) => {
+                            const sectionArticles = section.querySelectorAll('.article-preview');
+                            sectionArticles.forEach((article, index) => {
+                                article.style.display = '';
                                 if (index >= 3) {
                                     article.classList.add('article-hidden');
+                                } else {
+                                    article.classList.remove('article-hidden');
                                 }
                             });
-                            // 显示"显示全部"按钮
                             const showAllBtn = section.querySelector('.show-all-btn');
                             const hasHiddenArticles = section.querySelectorAll('.article-hidden').length > 0;
                             showAllBtn.style.display = hasHiddenArticles ? 'inline-block' : 'none';
                         } else if (sectionTitle === categoryName) {
-                            // 显示该分类的所有文章
                             section.style.display = 'block';
-                            const articles = section.querySelectorAll('.article-preview');
-                            articles.forEach(article => {
+                            const sectionArticles = section.querySelectorAll('.article-preview');
+                            sectionArticles.forEach(article => {
+                                article.style.display = '';
                                 article.classList.remove('article-hidden');
                             });
-                            // 隐藏"显示全部"按钮
                             const showAllBtn = section.querySelector('.show-all-btn');
                             showAllBtn.style.display = 'none';
                         } else {
-                            // 隐藏其他分类
                             section.style.display = 'none';
                         }
                     });
@@ -739,176 +774,69 @@
             showAllButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const categorySection = this.parentElement;
-                    const articles = categorySection.querySelectorAll('.article-preview');
+                    const sectionArticles = categorySection.querySelectorAll('.article-preview');
                     
-                    // 显示所有文章
-                    articles.forEach(article => {
+                    sectionArticles.forEach(article => {
                         article.classList.remove('article-hidden');
                     });
                     
-                    // 隐藏按钮
                     this.style.display = 'none';
                 });
             });
             
-            // 初始化：隐藏每个分类中超过3篇的文章，并显示"显示全部"按钮
-            categorySections.forEach(section => {
-                const articles = section.querySelectorAll('.article-preview');
-                const showAllBtn = section.querySelector('.show-all-btn');
-                
-                // 确保只有前3篇文章可见
-                articles.forEach((article, index) => {
-                    if (index >= 3) {
-                        article.classList.add('article-hidden');
-                    }
-                });
-                
-                // 根据是否有隐藏的文章决定是否显示"显示全部"按钮
-                const hasHiddenArticles = section.querySelectorAll('.article-hidden').length > 0;
-                showAllBtn.style.display = hasHiddenArticles ? 'inline-block' : 'none';
-            });
-        });
-    </script>
-
-    <!-- 搜索功能实现 -->
-    <script>
-        // 搜索功能实现
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('search-input');
-            const searchButton = document.getElementById('search-button');
-            const clearButton = document.getElementById('clear-button');
-            const articles = document.querySelectorAll('.article-preview');
-            const categorySections = document.querySelectorAll('.category-section');
-
-            // 搜索函数
-            function performSearch(query) {
-                const searchTerm = query.toLowerCase();
-                
-                // 搜索每篇文章并标记匹配结果
-                articles.forEach(article => {
-                    // 显示所有文章，无论是否被隐藏
-                    article.classList.remove('article-hidden');
-                    
-                    // 搜索标题
-                    const title = article.querySelector('h3, h4').textContent.toLowerCase();
-                    
-                    // 这里我们只能搜索文章预览中已有的内容，因为无法直接获取其他页面的内容
-                    // 可以根据文章标题和摘要进行搜索
-                    const summary = article.querySelector('p:nth-of-type(2)')?.textContent.toLowerCase() || '';
-                    
-                    // 获取文章分类
-                    const category = article.closest('.category-section').querySelector('h3').textContent.toLowerCase();
-                    
-                    // 检查是否匹配
-                    const isMatch = title.includes(searchTerm) || summary.includes(searchTerm) || category.includes(searchTerm);
-                    
-                    if (isMatch) {
-                        article.style.display = 'block';
-                    } else {
-                        article.style.display = 'none';
-                    }
-                });
-                
-                // 隐藏没有匹配文章的分类栏
-                categorySections.forEach(section => {
-                    const visibleArticles = section.querySelectorAll('.article-preview[style="display: block;"]');
-                    if (visibleArticles.length > 0) {
-                        // 如果该分类有匹配的文章，显示分类栏
-                        section.style.display = 'block';
-                        // 隐藏"显示全部"按钮，因为搜索结果可能有任意数量的文章
-                        const showAllBtn = section.querySelector('.show-all-btn');
-                        showAllBtn.style.display = 'none';
-                    } else {
-                        // 如果该分类没有匹配的文章，隐藏分类栏
-                        section.style.display = 'none';
-                    }
-                });
-            }
-
-            // 搜索功能实现
+            // 搜索功能
             function performSearch() {
                 const query = searchInput.value.trim().toLowerCase();
-                const articles = document.querySelectorAll('.article-preview');
-                const categories = document.querySelectorAll('.category-section');
-                const showAllButtons = document.querySelectorAll('.show-all-btn');
                 
-                // 如果没有搜索词，显示所有文章
                 if (!query) {
-                    articles.forEach(article => {
-                        article.style.display = 'block';
-                    });
-                    
-                    // 确保所有分类都显示
-                    categories.forEach(category => {
-                        category.style.display = 'block';
-                    });
+                    resetToDefaultView();
                     return;
                 }
                 
-                // 遍历所有分类
-                categories.forEach(category => {
-                    const categoryArticles = category.querySelectorAll('.article-preview');
+                categorySections.forEach(section => {
+                    const sectionArticles = section.querySelectorAll('.article-preview');
                     let hasVisibleArticle = false;
                     
-                    // 遍历当前分类下的所有文章
-                    categoryArticles.forEach(article => {
+                    sectionArticles.forEach(article => {
                         const title = article.querySelector('h4').textContent.toLowerCase();
                         const content = article.querySelector('p').textContent.toLowerCase();
+                        const categoryName = section.querySelector('h3').textContent.toLowerCase();
                         
-                        // 检查文章标题或内容是否包含搜索词
-                        if (title.includes(query) || content.includes(query)) {
+                        const isMatch = title.includes(query) || content.includes(query) || categoryName.includes(query);
+                        
+                        if (isMatch) {
                             article.style.display = 'block';
+                            article.classList.remove('article-hidden');
                             hasVisibleArticle = true;
                         } else {
                             article.style.display = 'none';
                         }
                     });
                     
-                    // 如果当前分类下没有匹配的文章，隐藏整个分类
-                    category.style.display = hasVisibleArticle ? 'block' : 'none';
-                });
-                
-                // 隐藏所有"显示全部"按钮
-                showAllButtons.forEach(button => {
-                    button.style.display = 'none';
+                    section.style.display = hasVisibleArticle ? 'block' : 'none';
+                    const showAllBtn = section.querySelector('.show-all-btn');
+                    showAllBtn.style.display = 'none';
                 });
             }
             
             // 搜索按钮点击事件
             searchButton.addEventListener('click', performSearch);
-
+            
             // 回车键搜索
             searchInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     performSearch();
                 }
             });
-
+            
             // 清除搜索
             clearButton.addEventListener('click', function() {
                 searchInput.value = '';
-                performSearch(); // 清除搜索后显示所有文章
-                
-                // 重置"显示全部"按钮的状态
-                const categorySections = document.querySelectorAll('.category-section');
-                categorySections.forEach(section => {
-                    const articles = section.querySelectorAll('.article-preview');
-                    const showAllBtn = section.querySelector('.show-all-btn');
-                    
-                    // 确保只有前3篇文章可见
-                    articles.forEach((article, index) => {
-                        if (index >= 3) {
-                            article.classList.add('article-hidden');
-                        } else {
-                            article.classList.remove('article-hidden');
-                        }
-                    });
-                    
-                    // 根据是否有隐藏的文章决定是否显示"显示全部"按钮
-                    const hasHiddenArticles = section.querySelectorAll('.article-hidden').length > 0;
-                    showAllBtn.style.display = hasHiddenArticles ? 'inline-block' : 'none';
-                });
+                resetToDefaultView();
             });
+            
+            // 初始化
+            resetToDefaultView();
         });
     </script>
 
