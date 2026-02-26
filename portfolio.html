@@ -180,63 +180,62 @@
 
         .viewer-controls {
             display: flex;
+            align-items: center;
             gap: 10px;
         }
 
         .control-btn {
-            padding: 10px 20px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 0.9rem;
             font-weight: 500;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .control-btn.primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-        }
-
-        .control-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .control-btn.secondary {
+            gap: 6px;
             background: white;
             color: var(--text);
             border: 2px solid var(--border);
         }
 
-        .control-btn.secondary:hover {
+        .control-btn:hover:not(:disabled) {
             border-color: var(--primary);
             color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .zoom-display {
+            min-width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .page-display {
+            min-width: 80px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text);
         }
 
         .viewer-main {
             flex: 1;
             overflow: auto;
-            background: #f8fafc;
+            background: #525659;
             display: flex;
             justify-content: center;
             padding: 30px;
         }
 
-        #pdf-canvas-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .pdf-page {
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            border-radius: 8px;
-            background: white;
+        #pdf-canvas {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .empty-state {
@@ -258,11 +257,13 @@
         .empty-state-text {
             font-size: 1.3rem;
             margin-bottom: 10px;
+            color: var(--text-light);
         }
 
         .empty-state-subtext {
             font-size: 1rem;
             opacity: 0.8;
+            color: var(--text-light);
         }
 
         @media (max-width: 1024px) {
@@ -277,6 +278,16 @@
 
             .pdf-viewer-container {
                 min-height: 500px;
+            }
+
+            .viewer-controls {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .control-btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -297,7 +308,7 @@
         <div class="portfolio-container">
             <div class="portfolio-header">
                 <h2>✨ 我的作品集</h2>
-                <p>选择左侧文档，即可在右侧预览</p>
+                <p>点击左侧文档卡片查看详情</p>
             </div>
 
             <div class="portfolio-content">
@@ -333,14 +344,23 @@
 
                 <div class="pdf-viewer-container">
                     <div class="viewer-header">
-                        <div class="viewer-title" id="current-doc-title">请选择文档</div>
+                        <div class="viewer-title" id="viewer-title">请选择文档</div>
+                        <div class="viewer-controls" id="viewer-controls" style="display: none;">
+                            <button class="control-btn" id="prev-btn" title="上一页">◀ 上一页</button>
+                            <span class="page-display" id="page-display">1 / 1</span>
+                            <button class="control-btn" id="next-btn" title="下一页">下一页 ▶</button>
+                            <button class="control-btn" id="zoom-out-btn" title="缩小">−</button>
+                            <span class="zoom-display" id="zoom-display">100%</span>
+                            <button class="control-btn" id="zoom-in-btn" title="放大">+</button>
+                        </div>
                     </div>
                     <div class="viewer-main" id="viewer-main">
-                        <div class="empty-state">
+                        <div class="empty-state" id="empty-state">
                             <div class="empty-state-icon">📁</div>
-                            <div class="empty-state-text">从左侧选择一个文档</div>
-                            <div class="empty-state-subtext">点击文档卡片即可开始预览</div>
+                            <div class="empty-state-text">点击左侧文档卡片</div>
+                            <div class="empty-state-subtext">即可在右侧查看文档</div>
                         </div>
+                        <canvas id="pdf-canvas" style="display: none;"></canvas>
                     </div>
                 </div>
             </div>
@@ -354,96 +374,131 @@
     </footer>
 
     <script>
-        // 设置 PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-        let currentPdf = null;
-        let currentDocName = '';
+        
+        let pdfDoc = null;
+        let currentPage = 1;
+        let scale = 1.0;
+        let canvas = null;
+        let ctx = null;
 
         const docItems = document.querySelectorAll('.doc-item');
+        const viewerTitle = document.getElementById('viewer-title');
+        const viewerControls = document.getElementById('viewer-controls');
         const viewerMain = document.getElementById('viewer-main');
-        const currentDocTitle = document.getElementById('current-doc-title');
+        const emptyState = document.getElementById('empty-state');
+        const pdfCanvas = document.getElementById('pdf-canvas');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const pageDisplay = document.getElementById('page-display');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        const zoomDisplay = document.getElementById('zoom-display');
+
+        function init() {
+            canvas = pdfCanvas;
+            ctx = canvas.getContext('2d');
+        }
+
+        async function loadPDF(url, title) {
+            try {
+                viewerTitle.textContent = title;
+                emptyState.style.display = 'none';
+                pdfCanvas.style.display = 'block';
+                viewerControls.style.display = 'flex';
+                
+                const loadingTask = pdfjsLib.getDocument(url);
+                pdfDoc = await loadingTask.promise;
+                currentPage = 1;
+                scale = 1.0;
+                updateControls();
+                renderPage(currentPage);
+            } catch (error) {
+                console.error('加载PDF失败:', error);
+                alert('加载文档失败，请检查网络连接');
+                emptyState.style.display = 'flex';
+                pdfCanvas.style.display = 'none';
+                viewerControls.style.display = 'none';
+            }
+        }
+
+        function renderPage(pageNum) {
+            pdfDoc.getPage(pageNum).then(function(page) {
+                const viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+            });
+        }
+
+        function updateControls() {
+            pageDisplay.textContent = `${currentPage} / ${pdfDoc.numPages}`;
+            zoomDisplay.textContent = `${Math.round(scale * 100)}%`;
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= pdfDoc.numPages;
+        }
 
         docItems.forEach(item => {
-            item.addEventListener('click', async function() {
+            item.addEventListener('click', function() {
                 docItems.forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
-
-                const pdfPath = this.getAttribute('data-pdf');
-                const docTitle = this.querySelector('.doc-item-title').textContent;
-                currentDocName = pdfPath;
-
-                currentDocTitle.textContent = docTitle;
-
-                loadPdfWithFallback(pdfPath, docTitle);
+                
+                const pdfUrl = this.dataset.pdf;
+                const title = this.querySelector('.doc-item-title').textContent;
+                loadPDF(pdfUrl, title);
             });
         });
 
-        async function loadPdfWithFallback(url, title) {
-            try {
-                viewerMain.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
-                viewerMain.style.padding = '30px';
-                
-                await loadPdf(url);
-            } catch (error) {
-                console.error('PDF加载失败:', error);
-                showFallbackViewer(url, title);
+        prevBtn.addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                updateControls();
+                renderPage(currentPage);
             }
-        }
+        });
 
-        function showFallbackViewer(url, title) {
-            viewerMain.style.padding = '30px';
-            viewerMain.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">📄</div>
-                    <div class="empty-state-text">文档已准备好</div>
-                    <div class="empty-state-subtext" style="margin-bottom: 20px;">${title}</div>
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-                        <a href="${url}" target="_blank" class="control-btn primary" style="text-decoration: none;">
-                            🔗 在新标签页中打开
-                        </a>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function loadPdf(url) {
-            try {
-                viewerMain.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
-                
-                const pdf = await pdfjsLib.getDocument(url).promise;
-                currentPdf = pdf;
-
-                const container = document.createElement('div');
-                container.id = 'pdf-canvas-container';
-
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    const page = await pdf.getPage(pageNum);
-                    const scale = 1.5;
-                    const viewport = page.getViewport({ scale });
-
-                    const canvas = document.createElement('canvas');
-                    canvas.className = 'pdf-page';
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    const renderContext = {
-                        canvasContext: context,
-                        viewport: viewport
-                    };
-
-                    await page.render(renderContext).promise;
-                    container.appendChild(canvas);
-                }
-
-                viewerMain.innerHTML = '';
-                viewerMain.appendChild(container);
-            } catch (error) {
-                console.error('PDF加载失败:', error);
-                throw error;
+        nextBtn.addEventListener('click', function() {
+            if (currentPage < pdfDoc.numPages) {
+                currentPage++;
+                updateControls();
+                renderPage(currentPage);
             }
-        }
+        });
+
+        zoomOutBtn.addEventListener('click', function() {
+            if (scale > 0.5) {
+                scale -= 0.25;
+                updateControls();
+                renderPage(currentPage);
+            }
+        });
+
+        zoomInBtn.addEventListener('click', function() {
+            if (scale < 3.0) {
+                scale += 0.25;
+                updateControls();
+                renderPage(currentPage);
+            }
+        });
+
+        document.addEventListener('contextmenu', function(e) {
+            if (e.target === canvas || canvas.contains(e.target)) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('dragstart', function(e) {
+            if (e.target === canvas || canvas.contains(e.target)) {
+                e.preventDefault();
+            }
+        });
+
+        init();
     </script>
 </body>
 </html>
